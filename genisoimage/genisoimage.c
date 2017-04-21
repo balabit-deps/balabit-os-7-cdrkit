@@ -47,6 +47,7 @@
 
 #include <mconfig.h>
 #include "genisoimage.h"
+#include "iso9660.h"
 #include <errno.h>
 #include <timedefs.h>
 #include <fctldefs.h>
@@ -197,7 +198,7 @@ int	allow_lowercase = 0;	/* Allow lower case letters */
 int	allow_multidot = 0;	/* Allow more than on dot in filename */
 int	iso_translate = 1;	/* 1 == enables '#', '-' and '~' removal */
 int	allow_leading_dots = 0;	/* DOS cannot read names with leading dots */
-int	allow_limited_size = 0;	/* Let the user to allow the trick explicitely */
+int	allow_limited_size = 0;	/* Let the user to allow the trick explicitly */
 #ifdef	VMS
 int	use_fileversion = 1;	/* Use file version # from filesystem */
 #else
@@ -526,6 +527,8 @@ static const struct ld_option ld_options[] =
 	'\0', NULL, "Set debug flag", ONE_DASH},
 	{{"eltorito-boot", required_argument, NULL, 'b'},
 	'b', "FILE", "Set El Torito boot image name", ONE_DASH},
+	{{"efi-boot", required_argument, NULL, 'e'},
+	'e', "FILE", "Set EFI boot image name", ONE_DASH},
 	{{"eltorito-alt-boot", no_argument, NULL, OPTION_ALT_BOOT},
 	'\0', NULL, "Start specifying alternative El Torito boot parameters", ONE_DASH},
 	{{"sparc-boot", required_argument, NULL, 'B'},
@@ -1535,6 +1538,7 @@ int main(int argc, char *argv[])
 			all_files = 0;
 			break;
 		case 'b':
+		case 'e':
 			do_sort++;		/* We sort bootcat/botimage */
 			use_eltorito++;
 			boot_image = optarg;	/* pathname of the boot image */
@@ -1550,6 +1554,10 @@ int main(int argc, char *argv[])
 #endif
 			}
 			get_boot_entry();
+			if (c == 'e')
+				current_boot_entry->arch = EL_TORITO_ARCH_EFI;
+			else
+				current_boot_entry->arch = EL_TORITO_ARCH_x86;
 			current_boot_entry->boot_image = boot_image;
 			break;
 		case OPTION_ALT_BOOT:
